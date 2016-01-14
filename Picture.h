@@ -20,7 +20,7 @@
 #define TOLERANCE_B 30
 #define TOLERANCE_G 30
 
-#define COEFFICIENT_MAX 5
+#define COEFFICIENT_MAX 4
 
 typedef struct Barycenter Barycenter;
 struct Barycenter{
