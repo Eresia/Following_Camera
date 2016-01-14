@@ -146,7 +146,7 @@ void send_instruction(int taille_ecran_x, int taille_ecran_y, Serial_com* sc, in
 			#ifdef DEBUG
 				printf("------------fin message-------------\n");
 			#endif
-			//usleep(((deltaMax - delta) * 10));//pid : delay de signal
+			usleep(((deltaMax - delta) * 100));//pid : delay de signal
 			//printf("Delay : %d\n", ((deltaMax - delta) * 10));
 			//printf("delta : %d\n", delta);
 		}
@@ -221,17 +221,33 @@ void* launch_follow(void* info_void){
 	Info* info = (Info*) info_void;
 
 	Serial_com test;
-	char name[10];
-	clock_t temps;
+	char name[] = "test.csv";
+	clock_t temps_start, temps;
 	double actu = 0;
 	int* tabWr = malloc(SIZE_MAX_CSV*sizeof(int));
 	int* tabWu = malloc(SIZE_MAX_CSV*sizeof(int));
 	int i;
+	int timerBegin = 0;
+
+	if(open_s(&test, ACM)!=-1){
+		#ifdef DEBUG
+		printf("connecté sur le port série\n");
+		#endif
+	}
+
+	else{
+		printf("problème de connection\n");
+		pthread_exit(NULL);
+	}
+
+	while((*info->isEnd == 0) && (info->sizeX == NULL || info->sizeY == NULL)){
+		usleep(25000);
+	}
 
 	#ifdef DEBUG
 		FILE * f;
-		scanf("%s", name);
-		strcat(name, ".csv");
+		//scanf("%s", name);
+		//strcat(name, ".csv");
 		printf("ecriture dans ... %s \n", name);
 
 		if((f=fopen(name, "w+"))!=NULL)
@@ -246,18 +262,6 @@ void* launch_follow(void* info_void){
 
 	#endif
 
-	if(open_s(&test, ACM)!=-1)
-	printf("connecté sur le port série\n");
-
-	else{
-		printf("problème de connection\n");
-		pthread_exit(NULL);
-	}
-
-	while((*info->isEnd == 0) && (info->sizeX == NULL || info->sizeY == NULL)){
-		usleep(25000);
-	}
-
 	reset(&test);
 	while(*info->isEnd == 0)
 	{
@@ -268,17 +272,27 @@ void* launch_follow(void* info_void){
 		else{
 			int newX = *info->x;
 			int newY = *info->y;
-			*info->x = -1;
-			*info->y = -1;
+			/**info->x = -1;
+			*info->y = -1;*/
 			send_instruction(*info->sizeX, *info->sizeY, &test, newX, newY);
 			#ifdef DEBUG
-				temps =clock();
-				actu = ((double)temps/CLOCKS_PER_SEC)*100;
-				printf("temps actuel : %2.1f \n", (double)actu);
 
-				tabWr[(int)actu] = *info->x;
-				tabWu[(int)actu] = *info->y;
-				printf("ajout de %d a %d secondes \n", tabWr[(int)actu], (int)actu);
+				if(timerBegin == 1 || ((*info->x != (*info->sizeX / 2)) && (*info->y != (*info->sizeY / 2)))){
+					timerBegin = 1;
+					temps =clock() - temps_start;
+					actu = (temps / (double) CLOCKS_PER_SEC) * 100;
+					printf("temps actuel : %lf \n", (double) actu);
+
+					tabWr[(int) actu] = *info->x;
+					tabWu[(int) actu] = *info->y;
+					printf("ajout de %d a %d dizaine de milisecondes \n", tabWr[(int) actu], (int) actu);
+					if(actu >= SIZE_MAX_CSV){
+						*info->isEnd = 1;
+					}
+				}
+				else{
+					temps_start = clock();
+				}
 			#endif
 		}
 

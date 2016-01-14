@@ -11,10 +11,16 @@
 
 #include "Information.h"
 #define CAMERA 0
-#define TOLERANCE_R 15
+
+// Etudier la couleur pour adapter la tolerence en fonction de R, G ou B.
+/*#define TOLERANCE_R 15
 #define TOLERANCE_B 40
-#define TOLERANCE_G 26
-#define COEFFICIENT_MAX 10
+#define TOLERANCE_G 26*/
+#define TOLERANCE_R 30
+#define TOLERANCE_B 30
+#define TOLERANCE_G 30
+
+#define COEFFICIENT_MAX 5
 
 typedef struct Barycenter Barycenter;
 struct Barycenter{

@@ -1,0 +1,9 @@
+Pour 10 secondes, on a traité 326 images.
+Pour 10 secondes, on a traité 392 images.
+Pour 10 secondes, on a traité 302 images.
+Pour 10 secondes, on a traité 404 images.
+Pour 10 secondes, on a traité 333 images.
+Pour 10 secondes, on a traité 322 images.
+Pour 10 secondes, on a traité 293 images.
+
+(Moyenne : 33,8 FPS)

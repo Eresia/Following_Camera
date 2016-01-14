@@ -1,7 +1,7 @@
 #ifndef INFORMATION
 #define INFORMATION
 
-#define TOLERANCE_CENTRE 10
+#define TOLERANCE_CENTRE 30
 
 typedef struct Info Info;
 struct Info {

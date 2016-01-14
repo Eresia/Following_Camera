@@ -1,5 +1,12 @@
 #include "Picture.h"
 
+void* waitSecond(void* end_void){
+	int* end = (int*) end_void;
+	sleep(10);
+	*end = 1;
+	pthread_exit(NULL);
+}
+
 // Fonction lié au clic. Renvoi la position du pixel et sa couleur.
 void mouseEvent(int evt, int x, int y, int flags, void* param) {
 	Color_pixel* color = (Color_pixel*) param ;
@@ -9,14 +16,14 @@ void mouseEvent(int evt, int x, int y, int flags, void* param) {
 		color->r = color->cam->imageData[((x*3)+(y*color->cam->widthStep))+2] ;
 		color->g = color->cam->imageData[((x*3)+(y*color->cam->widthStep))+1] ;
 		color->b = color->cam->imageData[((x*3)+(y*color->cam->widthStep))] ;
+
+		/*pthread_t t;
+		pthread_create(&t, NULL, waitSecond, color->isEnd);*/
 	}
+
 }
 
 int colorTracking (IplImage* cap, Color_pixel color, int i, uchar pixel_blue, uchar pixel_green, uchar pixel_red) {
-	// Etudier la couleur pour adapter la tolerence en fonction de R, G ou B.
-	/*int toleranceR = 15 ;
-	int toleranceG = 26 ;
-	int toleranceB = 40 ;*/
 
 	// Si les pixels sont de la couleur on les met en rouge.
 	if ((pixel_blue >= (color.b)-TOLERANCE_B) && (pixel_blue <= (color.b)+TOLERANCE_B) && (pixel_green >= (color.g)-TOLERANCE_G)
@@ -68,9 +75,6 @@ Barycenter barycenterCalculation (int *barycenter_x, int *barycenter_y, int size
 
 void* launch_picture(void* info_void) {
 	Info* info = (Info*) info_void;
-	float exe_time = 0 ;
-	clock_t t1, t2;
-	t1 = clock() ;
 	CvPoint center;
 
 	//coefficient
@@ -81,6 +85,7 @@ void* launch_picture(void* info_void) {
 	color.r = 0 ;
 	color.g = 255 ;
 	color.b = 0 ;
+	//color.isEnd = info->isEnd;
 
 	Barycenter barycentre_coordonnees ;
 	barycentre_coordonnees.x = barycentre_coordonnees.y = 0 ;
@@ -115,8 +120,6 @@ void* launch_picture(void* info_void) {
 	// Création de la fenêtre.
 	cvNamedWindow (window_title, CV_WINDOW_AUTOSIZE);
 
-	printf("\n") ;
-
 	uchar pixel_blue ;
 	uchar pixel_green ;
 	uchar pixel_red ;
@@ -138,10 +141,14 @@ void* launch_picture(void* info_void) {
 	/*barycenter_x = calloc(cap->width, sizeof(int));
 	barycenter_y = calloc(cap->height, sizeof(int));*/
 
-
+	// Variable certif
+	//int click = 0 ;
+	int nbImage = 0 ;
 	// Tant qu'on appuie pas sur q le on continu la boucle.
 	key = cvWaitKey(1);
 	while ((key != 'q') && (key != 'Q') && (*info->isEnd == 0)){
+		nbImage++ ;
+
 		if(key == 'r'){
 			color.r = 0 ;
 			color.g = 255 ;
@@ -196,7 +203,11 @@ void* launch_picture(void* info_void) {
 		*info->y = barycentre_coordonnees.y;
 
 		cvCircle(cap, p, 5, CV_RGB(0,0,255), -1, 8, 0);
-		cvCircle(cap, center, TOLERANCE_CENTRE, CV_RGB(0,255,0), -1, 8, 0);
+		#ifdef DEBUG
+			cvCircle(cap, center, TOLERANCE_CENTRE, CV_RGB(0,255,0), -1, 8, 0);
+		#else
+			cvCircle(cap, center, 10, CV_RGB(0,255,0), -1, 8, 0);
+		#endif
 
 		// On affiche la webcam normalement.
 		cvShowImage(window_title, cap);
@@ -216,15 +227,15 @@ void* launch_picture(void* info_void) {
 		free(barycenter_x);
 		free(barycenter_y);
 		key = cvWaitKey(1);
+
+		//printf("t2-t1 : %d\n", (int) ((t2-t1)/CLOCKS_PER_SEC));
 	}
 
-
+	//printf("Pour 10 secondes, on a traité %d images.\n", (int)nbImage);
 
 	cvReleaseCapture(&capture);
 	cvDestroyWindow(window_title);
 
-	t2 = clock() ;
-	exe_time = (float)t2-t1/CLOCKS_PER_SEC;
 	*info->isEnd = 1;
 	pthread_exit(NULL);
 }

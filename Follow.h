@@ -14,7 +14,7 @@
 #include "Information.h"
 
 #define ACM "/dev/ttyACM0"
-#define SIZE_MAX_CSV 1000
+#define SIZE_MAX_CSV 300
 
 typedef struct Serial_com Serial_com;
 struct Serial_com{
