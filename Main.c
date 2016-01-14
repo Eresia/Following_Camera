@@ -17,10 +17,10 @@ int main(int argc, char** argv){
 	info->sizeY = NULL;
 
 	pthread_create(&picture, NULL, launch_picture, info);
-	pthread_create(&follow, NULL, launch_follow, info);
+	//pthread_create(&follow, NULL, launch_follow, info);
 
 	pthread_join(picture, NULL);
-	pthread_join(follow, NULL);
+	//pthread_join(follow, NULL);
 
 	return 0;
 }

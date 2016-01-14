@@ -32,7 +32,7 @@ int colorTracking (IplImage* cap, Color_pixel color, int i, uchar pixel_blue, uc
 	return 0 ;
 }
 
-Barycenter barycenterCalculation (int *barycenter_x, int *barycenter_y, int size_x, int size_y) {
+Barycenter barycenterCalculation (int *barycenter_x, int *barycenter_y, int size_x, int size_y, int coefficient, int* isVisible) {
 	Barycenter coordonnees ;
 	coordonnees.x = coordonnees.y = 0 ;
 	//int value_max = 0 ;
@@ -42,23 +42,25 @@ Barycenter barycenterCalculation (int *barycenter_x, int *barycenter_y, int size
 	int compte_x = 0 ;
 	int compte_y = 0 ;
 
-	for (i = 0 ; i < size_x ; i++){
+	for (i = 0 ; i < size_x/coefficient ; i++){
 		nombre_x = nombre_x + (i*barycenter_x[i]);
 		compte_x = compte_x + barycenter_x[i];
 	}
 
-	for (i = 0 ; i < size_y ; i++){
+	for (i = 0 ; i < size_y/coefficient ; i++){
 		nombre_y = nombre_y + (i*barycenter_y[i]);
 		compte_y = compte_y + barycenter_y[i];
 	}
 
 	if ((compte_x != 0) && (compte_y != 0)){
-		coordonnees.x = nombre_x/compte_x;
-		coordonnees.y = nombre_y/compte_y ;
+		coordonnees.x = ((size_x/2) - ((size_x/2)/coefficient)) + nombre_x/compte_x;
+		coordonnees.y = ((size_y/2) - ((size_y/2)/coefficient)) + nombre_y/compte_y ;
+		*isVisible = 1;
 	}
 	else{
 		coordonnees.x = size_x/2;
 		coordonnees.y = size_y/2;
+		*isVisible = 0;
 	}
 
 	return coordonnees ;
@@ -70,7 +72,10 @@ void* launch_picture(void* info_void) {
 	clock_t t1, t2;
 	t1 = clock() ;
 	CvPoint center;
-	//int coefficient = 1;
+
+	//coefficient
+	int coefficient = 1;
+	int isVisible = 0;
 
 	Color_pixel color ;
 	color.r = 0 ;
@@ -98,7 +103,7 @@ void* launch_picture(void* info_void) {
 	//const char* window_hsv = "Hsv Camera" ;
 
 	// On choisis la source pour l'image (webcam).
-	capture = cvCreateCameraCapture (1);
+	capture = cvCreateCameraCapture (CAMERA);
 
 	// Si la capture d'image échoue, on arrête le programme avec un message.
 	if (!capture) {
@@ -125,6 +130,11 @@ void* launch_picture(void* info_void) {
 	center.x = *info->sizeX/2;
 	center.y = *info->sizeY/2;
 
+	int inSmallMinX = ((*info->sizeX/2) - ((*info->sizeX/2)/COEFFICIENT_MAX));
+	int inSmallMaxX = ((*info->sizeX/2) + ((*info->sizeX/2)/COEFFICIENT_MAX));
+	int inSmallMinY = ((*info->sizeY/2) - ((*info->sizeY/2)/COEFFICIENT_MAX));
+	int inSmallMaxY = ((*info->sizeY/2) + ((*info->sizeY/2)/COEFFICIENT_MAX));
+
 	/*barycenter_x = calloc(cap->width, sizeof(int));
 	barycenter_y = calloc(cap->height, sizeof(int));*/
 
@@ -138,8 +148,8 @@ void* launch_picture(void* info_void) {
 			color.b = 0 ;
 			*info->reset = 1;
 		}
-		barycenter_x = calloc(cap->width, sizeof(int));
-		barycenter_y = calloc(cap->height, sizeof(int));
+		barycenter_x = calloc(cap->width/coefficient, sizeof(int));
+		barycenter_y = calloc(cap->height/coefficient, sizeof(int));
 
 
 		// On met la capture de la webcam dans l'attribut cap.
@@ -150,8 +160,12 @@ void* launch_picture(void* info_void) {
 
 
 		// On parcours notre image (les pixels).
-		for (i = 0 ; i < (cap->width) ; i++) {
-			for (j = 0 ; j < cap->height ; j++) {
+		int widthMin = ((*info->sizeX/2) - ((*info->sizeX/2)/coefficient));
+		int widthMax = ((*info->sizeX/2) + ((*info->sizeX/2)/coefficient));
+		int heightMin = ((*info->sizeY/2) - ((*info->sizeY/2)/coefficient));
+		int heightMax = ((*info->sizeY/2) + ((*info->sizeY/2)/coefficient));
+		for (i = widthMin; i < widthMax; i++) {
+			for (j = heightMin; j < heightMax; j++) {
 
 				// Pixels B,G,R en fonction de la position.
 				pixel_blue = (uchar)(cap->imageData[((i*3)+(j*cap->widthStep))]) ;
@@ -162,15 +176,15 @@ void* launch_picture(void* info_void) {
 				if(colorTracking(cap, color, ((i*3)+(j*cap->widthStep)), pixel_blue, pixel_green, pixel_red)){
 					//printf("y = %d, x = %d\n", i/((cap->width)*3), i%((cap->width)*3));
 					//printf("x = %d, y = %d\n", i/3, j);
-					barycenter_y[j]++ ;
+					barycenter_y[j-heightMin]++ ;
 
-					barycenter_x[i]++ ;
+					barycenter_x[i-widthMin]++ ;
 				}
 			}
 		}
 
 		// On calcul le barycentre.
-		barycentre_coordonnees = barycenterCalculation (barycenter_x, barycenter_y, cap->width, cap->height) ;
+		barycentre_coordonnees = barycenterCalculation (barycenter_x, barycenter_y, cap->width, cap->height, coefficient, &isVisible) ;
 
 		/*printf("barycentre x main = %d, barycentre y main = %d\n", barycentre_coordonnees.x,
 		barycentre_coordonnees.y);*/
@@ -187,6 +201,16 @@ void* launch_picture(void* info_void) {
 		// On affiche la webcam normalement.
 		cvShowImage(window_title, cap);
 		cvSetMouseCallback(window_title, mouseEvent, &color);
+
+		//On modifie si besoin le coefficient
+		if(isVisible){
+			if((*info->x > inSmallMinX) && (*info->x < inSmallMaxX) && (*info->y > inSmallMinY) && (*info->y < inSmallMaxY)){
+				coefficient = COEFFICIENT_MAX;
+			}
+		}
+		else{
+			coefficient = 1;
+		}
 
 		// On réinitialise les barycentres
 		free(barycenter_x);

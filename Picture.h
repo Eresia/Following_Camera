@@ -10,9 +10,11 @@
 #include <pthread.h>
 
 #include "Information.h"
+#define CAMERA 0
 #define TOLERANCE_R 15
 #define TOLERANCE_B 40
 #define TOLERANCE_G 26
+#define COEFFICIENT_MAX 10
 
 typedef struct Barycenter Barycenter;
 struct Barycenter{
@@ -31,7 +33,7 @@ struct Color_pixel{
 
 void mouseEvent(int evt, int x, int y, int flags, void* param);
 int colorTracking (IplImage* cap, Color_pixel color, int i, uchar pixel_blue, uchar pixel_green, uchar pixel_red);
-Barycenter barycenterCalculation (int *barycenter_x, int *barycenter_y, int size_x, int size_y);
+Barycenter barycenterCalculation (int *barycenter_x, int *barycenter_y, int size_x, int size_y, int coefficient, int* isVisible);
 void* launch_picture(void* pos_void);
 
 #endif
