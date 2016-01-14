@@ -2,6 +2,8 @@
 
 int open_s(Serial_com* sc, char *name){
 
+	struct termios toptions;
+
 	strcpy(sc->name, name) ;
 
 
@@ -45,16 +47,9 @@ int write_s(Serial_com* sc, char *buffer, int nbyte){
 	return write(sc->fd, buffer, nbyte);
 }
 
-int read_s(Serial_com* sc, char *buffer){
-	int result = 0;
-	while(read(sc->fd, buffer,1) > 0){
-		printf("%s\n",buffer) ;
-		if(buffer[0] =='a'){
-			result = 1 ;
-			printf("alarme détecté\n") ;
-		}
-	}
-	return result;
+int read_s(Serial_com* sc){
+	char* buffer = malloc(sizeof(char));
+	return read(sc->fd, buffer,1);
 }
 
 int close_s(Serial_com* sc){
@@ -97,7 +92,7 @@ void send_instruction(int taille_ecran_x, int taille_ecran_y, Serial_com* sc, in
 		delta = (sqrt((delta_x * delta_x) + (delta_y * delta_y)));
 		deltaMax = (sqrt((centre_x * centre_x) + (centre_y * centre_y)));
 
-		printf("delta : %d\n", delta);
+		//printf("delta : %d\n", delta);
 
 
 		//calcul de la commande à envoyer
@@ -122,7 +117,6 @@ void send_instruction(int taille_ecran_x, int taille_ecran_y, Serial_com* sc, in
 		}
 
 		if((angle_x != '0') || (angle_y != 'n')){
-
 
 			//envoie de la commande au servo moteur
 			if(write_s(sc, &angle_x, 1)!=-1){
@@ -152,8 +146,8 @@ void send_instruction(int taille_ecran_x, int taille_ecran_y, Serial_com* sc, in
 			#ifdef DEBUG
 				printf("------------fin message-------------\n");
 			#endif
-			usleep(((deltaMax - delta) * 10));//pid : delay de signal
-			printf("Delay : %d\n", ((deltaMax - delta) * 10));
+			//usleep(((deltaMax - delta) * 10));//pid : delay de signal
+			//printf("Delay : %d\n", ((deltaMax - delta) * 10));
 			//printf("delta : %d\n", delta);
 		}
 		else{

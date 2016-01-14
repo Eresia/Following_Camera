@@ -5,10 +5,10 @@ EXE=cam.out
 all: $(EXE)
 
 bin/%.o: %.c *.h
-	gcc -o $@ -c $< `pkg-config --cflags opencv --libs opencv`
+	gcc -o $@ -c $< `pkg-config --cflags opencv`
 
 $(EXE) : $(OBJ)
-	gcc -o $@ $^ -Wall `pkg-config --cflags opencv --libs opencv` -ldl -lm -lpthread
+	gcc -o $@ $^ -Wall `pkg-config --libs opencv` -ldl -lm -lpthread
 
 clean:
 	rm -rf bin/*.o *.out

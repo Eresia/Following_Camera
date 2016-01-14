@@ -3,7 +3,6 @@
 // Fonction lié au clic. Renvoi la position du pixel et sa couleur.
 void mouseEvent(int evt, int x, int y, int flags, void* param) {
 	Color_pixel* color = (Color_pixel*) param ;
-	int i = 0 ;
 
 	// On récupére la couleur du pixel sur lequel on clique.
 	if(evt==CV_EVENT_LBUTTONDOWN) {
@@ -37,7 +36,7 @@ Barycenter barycenterCalculation (int *barycenter_x, int *barycenter_y, int size
 	Barycenter coordonnees ;
 	coordonnees.x = coordonnees.y = 0 ;
 	//int value_max = 0 ;
-	int i, j = 0 ;
+	int i;
 	int nombre_x = 0 ;
 	int nombre_y = 0 ;
 	int compte_x = 0 ;
@@ -67,12 +66,11 @@ Barycenter barycenterCalculation (int *barycenter_x, int *barycenter_y, int size
 
 void* launch_picture(void* info_void) {
 	Info* info = (Info*) info_void;
-	int nbImage = 0 ;
 	float exe_time = 0 ;
-	clock_t t1, t2, time_test ;
+	clock_t t1, t2;
 	t1 = clock() ;
 	CvPoint center;
-
+	//int coefficient = 1;
 
 	Color_pixel color ;
 	color.r = 0 ;
@@ -97,7 +95,7 @@ void* launch_picture(void* info_void) {
 
 	// Déclaration des différents noms de fenêtres
 	const char* window_title = "Original Camera" ;
-	const char* window_hsv = "Hsv Camera" ;
+	//const char* window_hsv = "Hsv Camera" ;
 
 	// On choisis la source pour l'image (webcam).
 	capture = cvCreateCameraCapture (1);
@@ -132,6 +130,7 @@ void* launch_picture(void* info_void) {
 
 
 	// Tant qu'on appuie pas sur q le on continu la boucle.
+	key = cvWaitKey(1);
 	while ((key != 'q') && (key != 'Q') && (*info->isEnd == 0)){
 		if(key == 'r'){
 			color.r = 0 ;
@@ -176,7 +175,7 @@ void* launch_picture(void* info_void) {
 		/*printf("barycentre x main = %d, barycentre y main = %d\n", barycentre_coordonnees.x,
 		barycentre_coordonnees.y);*/
 		CvPoint p;
-		printf("Barycentre update\n");
+		//printf("Barycentre update\n");
 		p.x = barycentre_coordonnees.x ;
 		p.y = barycentre_coordonnees.y ;
 		*info->x = barycentre_coordonnees.x;
@@ -192,7 +191,7 @@ void* launch_picture(void* info_void) {
 		// On réinitialise les barycentres
 		free(barycenter_x);
 		free(barycenter_y);
-		key = cvWaitKey(10);
+		key = cvWaitKey(1);
 	}
 
 

@@ -1,6 +1,6 @@
 #include <Servo.h>
 
-#define PAS 2
+#define PAS 1
 
 
 Servo myservo;
@@ -13,7 +13,6 @@ int incx=0;
 int incy=0;
 
 char datax[1];
-char datay[3];
 
 void setup() {
 
@@ -45,35 +44,17 @@ void setup() {
 
 void loop() {
 	int i=0;
+        incx = 0;
+        incy = 0;
 
 	datax[0] = '\0';
 
 	int cont=0;
 	if(Serial.available()){
-		while(Serial.available())
-		{
-			datax[cont]=Serial.read();
-
-			//   Serial.println(posx);
-
-			// datax[0]=NULL;
-			//datay[0]=Serial.read();
-
-
-
-			//posy = posy + atoi(datay);
-
-			//myservo.write(posy);
-
-			//
-
-			cont++;
-
-		}
+		datax[0]=Serial.read();
+                Serial.flush();
 
 		if(datax[0] == 'r'){
-			incx = 0;
-			incy = 0;
 			posx = 90;
 			posy = 95;
 		}

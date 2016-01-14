@@ -16,8 +16,6 @@
 #define ACM "/dev/ttyACM0"
 #define SIZE_MAX_CSV 1000
 
-struct termios toptions;
-
 typedef struct Serial_com Serial_com;
 struct Serial_com{
 	char name[20];
@@ -29,6 +27,7 @@ struct Serial_com{
 
 int open_s(Serial_com* sc, char *name);
 int write_s(Serial_com* sc, char *buffer, int nbyte);
+int read_s(Serial_com* sc);
 int close_s(Serial_com* sc);
 void writeOnFile(FILE * fichier, char* texte);
 void send_instruction(int taille_ecran_x, int taille_ecran_y, Serial_com* sc, int x, int y);
