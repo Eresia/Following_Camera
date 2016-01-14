@@ -33,6 +33,11 @@ int open_s(Serial_com* sc, char *name){
 	toptions.c_cflag &= ~CSTOPB ;
 	toptions.c_cflag &= ~CSIZE;
 	toptions.c_cflag |= CS8 ;
+	toptions.c_cflag &= ~CRTSCTS;
+	toptions.c_cflag |= CREAD | CLOCAL;
+	toptions.c_iflag &= ~(IXON | IXOFF | IXANY);
+	toptions.c_iflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+	toptions.c_oflag &= ~OPOST;
 
 	toptions.c_cflag &= ~CRTSCTS;
 
@@ -115,6 +120,8 @@ void send_instruction(int taille_ecran_x, int taille_ecran_y, Serial_com* sc, in
 		else{
 			angle_y = 'n';
 		}
+
+		tcflush(sc->fd, TCIFLUSH);
 
 		if((angle_x != '0') || (angle_y != 'n')){
 
